@@ -333,50 +333,6 @@ non-sequential, reflecting interactive development.
 
 ---
 
-## Known limitations
-
-<details>
-<summary><b>Duplicate images across splits</b></summary>
-
-Verified by byte-level comparison of the source datasets:
-
-- **One image identical between AZH train and test**
-  (`train/surgical/10_0.jpg` / `test/surgical/99_0.jpg`). On the 234-image AZH
-  test set, the maximum effect on the reported 91.88% accuracy is **0.43
-  percentage points** (worst case 91.45%).
-- **Nine image pairs identical between FUSeg train and validation.** Validation
-  is used for model selection only and does not enter the reported test Dice.
-- Duplicate copies within splits: FUSeg train 10, validation 6, test 7.
-- FUSeg train↔test and validation↔test contain no duplicates.
-
-</details>
-
-<details>
-<summary><b>Ablation protocol</b></summary>
-
-Reported component effects fall within cross-validation noise. The XL ablation
-implementation differs substantially from the MINI and BASE scripts, which share
-most of their implementation — treat cross-scale ablation comparisons with that
-in mind.
-
-</details>
-
-<details>
-<summary><b>Scope</b></summary>
-
-All images are foot, pressure, venous and surgical wound photographs from a
-small number of clinical sources. Imaging conditions, camera hardware and
-skin-tone distribution are neither controlled nor documented, and per-skin-tone
-performance has not been measured. Generalisation beyond this population is
-untested.
-
-**This is research code, not a medical device.** It has not been validated for
-diagnosis or patient care and carries no regulatory clearance.
-
-</details>
-
----
-
 ## Citation
 
 ```bibtex
