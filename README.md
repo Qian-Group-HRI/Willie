@@ -35,6 +35,120 @@ Qian Group, University of Houston
 
 ---
 
+## Model zoo
+
+Hosted on the Hugging Face Hub:
+**[QianGroup/willie-weights](https://huggingface.co/QianGroup/willie-weights)**
+
+| Model | Params | Folds | Files |
+|:--|--:|--:|:--|
+| [WILLIE-MINI](https://huggingface.co/QianGroup/willie-weights/tree/main/mini) | 34.3M | 5 | `mini/willie_mini_fold{0-4}_best.pt` |
+| [WILLIE-BASE](https://huggingface.co/QianGroup/willie-weights/tree/main/base) | 520.4M | 5 | `base/willie_base_fold{0-4}_best.pt` |
+| [WILLIE-XL](https://huggingface.co/QianGroup/willie-weights/tree/main/xl) | 762.5M | 5 | `xl/willie_xl_fold{0-4}_best.pt` |
+| [Decoders](https://huggingface.co/QianGroup/willie-weights/tree/main/decoders) | — | — | fine-tuned MedSAM / SAM2 mask decoders |
+
+```python
+import torch
+from huggingface_hub import hf_hub_download
+
+path  = hf_hub_download("QianGroup/willie-weights", "xl/willie_xl_fold0_best.pt")
+ckpt  = torch.load(path, map_location="cpu")
+state = ckpt.get("model_state_dict", ckpt)   # XL ships as a bare state_dict
+model.load_state_dict(state)
+model.eval()
+```
+
+Preprocessing: ImageNet normalization; resize 256→224 (MINI) or 420→378
+(BASE/XL). Reported numbers use the fold ensemble — a single fold scores lower.
+
+---
+
+## Datasets
+
+Three public wound datasets. **Images are governed by their original licences
+and are not redistributed here.**
+
+| Dataset | Source | Notes |
+|:--|:--|:--|
+| **FUSeg** | [fusc.grand-challenge.org](https://fusc.grand-challenge.org) | Requires the challenge data-use agreement |
+| **AZH** | [uwm-bigdata](https://github.com/uwm-bigdata) | AZH Wound and Vascular Center |
+| **Medetec** | [medetec.co.uk](http://www.medetec.co.uk) | Own terms of use |
+
+Split definitions are on the Hub:
+**[QianGroup/willie-benchmark](https://huggingface.co/QianGroup/willie-benchmark)**
+
+<details>
+<summary><b>Expected directory layout</b> — 3,535 files</summary>
+
+```
+data/
+├── FUSeg/
+│   ├── train/images/   610      train/labels/   610
+│   ├── val/images/     400      val/labels/     400
+│   └── test/images/    200      (no public labels)
+├── AZH/
+│   ├── train/   BG 75 · diabetic 139 · "no wound" 75 ·
+│   │            pressure 100 · surgical 122 · venous 185
+│   └── test/    BG 25 · diabetic 46 · "no wound" 25 ·
+│                pressure 34 · surgical 42 · venous 62
+└── Medetec/
+    ├── diabetic/   48        pressure/  170
+    └── toes/       34        venous/    133
+```
+
+The AZH class folder `no wound` contains a space. Keep it.
+`verify_data.py` reports per-directory counts and names any missing file.
+
+</details>
+
+---
+
+## Repository structure
+
+| Notebook | Purpose |
+|:--|:--|
+| `01_WILLIE_DataForge.ipynb` | Data preparation, cleaning, split generation |
+| `02_WILLIE_DetectionEngine.ipynb` | Detection baseline pipeline |
+| `03_WILLIE_Cls_Baselines.ipynb` | Classification baselines |
+| `04_WILLIE_Seg_Baselines.ipynb` | Segmentation baselines |
+| `WILLIE_SAM2_vs_MedSAM.ipynb` | SAM2 vs MedSAM comparison |
+| `WILLIE_MINI.ipynb` | MINI (34.3M) |
+| `07_WILLIE_BASE.ipynb` | BASE (520.4M) |
+| `08_WILLIE_XL.ipynb` | XL (762.5M) |
+| `09_WILLIE_Scaling_Analysis.ipynb` | Scaling behaviour across tasks |
+| `10_WILLIE_Cls_Comparison.ipynb` | Classification comparison |
+| `11_WILLIE_Det_Comparison.ipynb` | Detection / localization comparison |
+| `12_WILLIE_All_Figures_Tables.ipynb` | Figures and tables |
+
+| Directory | Contents |
+|:--|:--|
+| `data/processed/index/` | Authoritative index and split definitions |
+| `04_Manifests_and_Splits/` | Per-task manifests |
+| `Figures/` | Generated figures |
+| `Tables/` | Generated tables |
+| `07_Evaluation_Results/` | Per-run evaluation outputs |
+| `08_SAM2_Generated_Masks/` | SAM2-generated masks |
+| `09_Detection_Predictions/` | Detection predictions |
+| `ablations/` | Component ablation scripts |
+
+Manifest paths are relative to the repository root.
+
+---
+
+
+## Reproducing the paper
+
+1. Set up the `wound` environment.
+2. Obtain the datasets and place them per the layout above.
+3. Run `01_WILLIE_DataForge.ipynb` to build and verify the splits.
+4. Run `06`–`08` for MINI / BASE / XL.
+5. Run `09`–`13` to regenerate the tables and figures.
+
+BASE and XL need multi-GPU hardware. MINI is the single-GPU entry point. For
+inference only, download the released weights instead of training.
+
+---
+
 ## Two findings
 
 **1. Segmentation-derived localization beats dedicated detectors.**
@@ -179,34 +293,6 @@ All generated tables are in [`Tables/`](Tables/); all figures in
 
 ---
 
-## Model zoo
-
-Hosted on the Hugging Face Hub:
-**[QianGroup/willie-weights](https://huggingface.co/QianGroup/willie-weights)**
-
-| Model | Params | Folds | Files |
-|:--|--:|--:|:--|
-| [WILLIE-MINI](https://huggingface.co/QianGroup/willie-weights/tree/main/mini) | 34.3M | 5 | `mini/willie_mini_fold{0-4}_best.pt` |
-| [WILLIE-BASE](https://huggingface.co/QianGroup/willie-weights/tree/main/base) | 520.4M | 5 | `base/willie_base_fold{0-4}_best.pt` |
-| [WILLIE-XL](https://huggingface.co/QianGroup/willie-weights/tree/main/xl) | 762.5M | 5 | `xl/willie_xl_fold{0-4}_best.pt` |
-| [Decoders](https://huggingface.co/QianGroup/willie-weights/tree/main/decoders) | — | — | fine-tuned MedSAM / SAM2 mask decoders |
-
-```python
-import torch
-from huggingface_hub import hf_hub_download
-
-path  = hf_hub_download("QianGroup/willie-weights", "xl/willie_xl_fold0_best.pt")
-ckpt  = torch.load(path, map_location="cpu")
-state = ckpt.get("model_state_dict", ckpt)   # XL ships as a bare state_dict
-model.load_state_dict(state)
-model.eval()
-```
-
-Preprocessing: ImageNet normalization; resize 256→224 (MINI) or 420→378
-(BASE/XL). Reported numbers use the fold ensemble — a single fold scores lower.
-
----
-
 ## Quick start
 
 ```bash
@@ -228,91 +314,6 @@ python verify_data.py
 TOTAL                      3535        0
 All referenced files present. The splits will reproduce.
 ```
-
----
-
-## Repository structure
-
-| Notebook | Purpose |
-|:--|:--|
-| `01_WILLIE_DataForge.ipynb` | Data preparation, cleaning, split generation |
-| `02_WILLIE_DetectionEngine.ipynb` | Detection baseline pipeline |
-| `03_WILLIE_Cls_Baselines.ipynb` | Classification baselines |
-| `04_WILLIE_Seg_Baselines.ipynb` | Segmentation baselines |
-| `WILLIE_SAM2_vs_MedSAM.ipynb` | SAM2 vs MedSAM comparison |
-| `WILLIE_MINI.ipynb` | MINI (34.3M) |
-| `07_WILLIE_BASE.ipynb` | BASE (520.4M) |
-| `08_WILLIE_XL.ipynb` | XL (762.5M) |
-| `09_WILLIE_Scaling_Analysis.ipynb` | Scaling behaviour across tasks |
-| `10_WILLIE_Cls_Comparison.ipynb` | Classification comparison |
-| `11_WILLIE_Det_Comparison.ipynb` | Detection / localization comparison |
-| `12_WILLIE_All_Figures_Tables.ipynb` | Figures and tables |
-
-| Directory | Contents |
-|:--|:--|
-| `data/processed/index/` | Authoritative index and split definitions |
-| `04_Manifests_and_Splits/` | Per-task manifests |
-| `Figures/` | Generated figures |
-| `Tables/` | Generated tables |
-| `07_Evaluation_Results/` | Per-run evaluation outputs |
-| `08_SAM2_Generated_Masks/` | SAM2-generated masks |
-| `09_Detection_Predictions/` | Detection predictions |
-| `ablations/` | Component ablation scripts |
-
-Manifest paths are relative to the repository root.
-
----
-
-## Datasets
-
-Three public wound datasets. **Images are governed by their original licences
-and are not redistributed here.**
-
-| Dataset | Source | Notes |
-|:--|:--|:--|
-| **FUSeg** | [fusc.grand-challenge.org](https://fusc.grand-challenge.org) | Requires the challenge data-use agreement |
-| **AZH** | [uwm-bigdata](https://github.com/uwm-bigdata) | AZH Wound and Vascular Center |
-| **Medetec** | [medetec.co.uk](http://www.medetec.co.uk) | Own terms of use |
-
-Split definitions are on the Hub:
-**[QianGroup/willie-benchmark](https://huggingface.co/QianGroup/willie-benchmark)**
-
-<details>
-<summary><b>Expected directory layout</b> — 3,535 files</summary>
-
-```
-data/
-├── FUSeg/
-│   ├── train/images/   610      train/labels/   610
-│   ├── val/images/     400      val/labels/     400
-│   └── test/images/    200      (no public labels)
-├── AZH/
-│   ├── train/   BG 75 · diabetic 139 · "no wound" 75 ·
-│   │            pressure 100 · surgical 122 · venous 185
-│   └── test/    BG 25 · diabetic 46 · "no wound" 25 ·
-│                pressure 34 · surgical 42 · venous 62
-└── Medetec/
-    ├── diabetic/   48        pressure/  170
-    └── toes/       34        venous/    133
-```
-
-The AZH class folder `no wound` contains a space. Keep it.
-`verify_data.py` reports per-directory counts and names any missing file.
-
-</details>
-
----
-
-## Reproducing the paper
-
-1. Set up the `wound` environment.
-2. Obtain the datasets and place them per the layout above.
-3. Run `01_WILLIE_DataForge.ipynb` to build and verify the splits.
-4. Run `06`–`08` for MINI / BASE / XL.
-5. Run `09`–`13` to regenerate the tables and figures.
-
-BASE and XL need multi-GPU hardware. MINI is the single-GPU entry point. For
-inference only, download the released weights instead of training.
 
 ---
 
