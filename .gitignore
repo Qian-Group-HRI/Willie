@@ -57,3 +57,8 @@ MODEL_CARD.md
 remap_check.txt
 __pycache__/
 .ipynb_checkpoints/
+
+*.zip
+01_Trained_Models.zip
+
+*.zip
