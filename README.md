@@ -349,9 +349,9 @@ Please also cite FUSeg, AZH and Medetec per their own requirements.
 
 ---
 
-## Licence
+## License
 
-Code released under the [MIT Licence](LICENSE). The wound datasets are **not**
+Code released under the [MIT License](LICENSE). The wound datasets are **not**
 covered by this licence and remain subject to their original terms.
 
 ---
