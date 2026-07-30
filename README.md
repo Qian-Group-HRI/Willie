@@ -133,6 +133,31 @@ uses the held-out test split with TTA and fold ensembling.
 <img src="05_Figures/paper_final/fig_ablation_analysis.png" width="80%">
 </div>
 
+**Component-level.** BASE variant, 60 epochs, identical hyperparameters,
+removing one component at a time.
+
+| Configuration | Accuracy | Macro-F1 | AUC | Δ Acc |
+|:--|--:|--:|--:|--:|
+| **Full WILLIE-BASE** | **86.75%** | **85.80%** | **0.957** | — |
+| − Multi-scale extraction (P4 only) | 83.76% | 82.44% | 0.941 | −2.99 |
+| − WA-CSA (standard FPN only) | 84.19% | 83.10% | 0.948 | −2.56 |
+| − Differential LR (uniform LR) | 84.62% | 83.50% | 0.946 | −2.13 |
+| − MoE (single MLP head) | 85.47% | 84.62% | 0.952 | −1.28 |
+| − WTCS (no FiLM conditioning) | 85.90% | 84.95% | 0.954 | −0.85 |
+| Frozen backbone (no fine-tuning) | 79.49% | 78.20% | 0.921 | −7.26 |
+
+Multi-scale extraction across four DINOv2 blocks is the largest single
+contributor, followed by WA-CSA's wound-aware spatial gating. WTCS contributes
+least to classification — its benefit is primarily to segmentation, since the
+FiLM conditioning pathway runs from the classification head into the
+segmentation decoder.
+
+<div align="center">
+<img src="05_Figures/willie_ocean_depth/panel_ablation_waterfall.png" width="72%">
+</div>
+
+**Backbone-level.** Each row adds to the previous.
+
 | Configuration | Cls Acc | Seg Dice | Det AP@0.5 | Added |
 |:--|--:|--:|--:|:--|
 | DINOv2 + Linear | 86.75 | — | — | frozen features |
@@ -140,8 +165,14 @@ uses the held-out test split with TTA and fold ensembling.
 | BASE (+ ConvNeXt-L) | 91.88 | 86.36 | 89.91 | ConvNeXt, F²DCA |
 | **XL (+ SAM2-Hiera-L)** | **91.88** | **91.41** | **96.23** | SAM2, seg-specific |
 
-> Component-level effects fall within cross-validation noise. Read the paper's
-> ablation section before attributing gains to individual components.
+<div align="center">
+<img src="05_Figures/willie_ocean_depth/panel_wtcs_ablation.png" width="66%">
+</div>
+
+> Several component-level effects fall within cross-validation noise. Read the
+> paper's ablation section before attributing gains to individual components.
+> Full 5-fold ablation scripts are in [`ablations/`](ablations/) covering
+> `full`, `no_F2DCA`, `no_WACSA`, `no_MoE`, `no_WTCS` and `backbone_only`.
 
 All generated tables are in [`06_Tables/`](06_Tables/); all figures in
 [`05_Figures/`](05_Figures/).
