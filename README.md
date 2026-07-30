@@ -43,7 +43,7 @@ Deriving the wound bounding box from the predicted segmentation mask outperforme
 RT-DETR and YOLO baselines trained directly for detection.
 
 <div align="center">
-<img src="05_Figures/willie_ocean_depth/panel_detr_vs_segdet.png" width="72%">
+<img src="Figures/willie_ocean_depth/panel_detr_vs_segdet.png" width="72%">
 </div>
 
 **2. Scaling is task-dependent.**
@@ -53,7 +53,7 @@ classification saturates. This argues against choosing a single capacity for a
 multi-task wound pipeline.
 
 <div align="center">
-<img src="05_Figures/cross_model_comparison/fig_scaling_curve.png" width="72%">
+<img src="Figures/cross_model_comparison/fig_scaling_curve.png" width="72%">
 </div>
 
 ---
@@ -65,7 +65,7 @@ A shared encoder feeds three task heads over a single 5-class taxonomy
 stacking backbones rather than widening a single one.
 
 <div align="center">
-<img src="05_Figures/cross_model_comparison/fig_architecture_overview.png" width="88%">
+<img src="Figures/cross_model_comparison/fig_architecture_overview.png" width="88%">
 </div>
 
 | Scale | Params | Backbones | Input |
@@ -90,15 +90,15 @@ Test-set results, 5-fold ensemble with test-time augmentation.
 | Localization | AP@0.5 | **96.23%** |
 
 <div align="center">
-<img src="05_Figures/paper_final/fig_radar_comparison.png" width="60%">
+<img src="Figures/paper_final/fig_radar_comparison.png" width="60%">
 </div>
 
 ### Against baselines
 
 <table>
 <tr>
-<td width="50%"><img src="05_Figures/paper_final/fig_classification_accuracy.png"></td>
-<td width="50%"><img src="05_Figures/paper_final/fig_segmentation_dice.png"></td>
+<td width="50%"><img src="Figures/paper_final/fig_classification_accuracy.png"></td>
+<td width="50%"><img src="Figures/paper_final/fig_segmentation_dice.png"></td>
 </tr>
 <tr>
 <td align="center"><em>Classification vs ResNet-50, VGG-19, EfficientNet-B4, DINOv2+Linear</em></td>
@@ -109,7 +109,7 @@ Test-set results, 5-fold ensemble with test-time augmentation.
 ### Accuracy per parameter
 
 <div align="center">
-<img src="05_Figures/paper_final/fig_params_vs_accuracy.png" width="66%">
+<img src="Figures/paper_final/fig_params_vs_accuracy.png" width="66%">
 </div>
 
 ### Cross-validation
@@ -124,13 +124,13 @@ uses the held-out test split with TTA and fold ensembling.
 | XL | — | 91.5 ± 1.1 | — | — |
 
 <div align="center">
-<img src="05_Figures/willie_ocean_depth/fig_per_fold_variance.png" width="66%">
+<img src="Figures/willie_ocean_depth/fig_per_fold_variance.png" width="66%">
 </div>
 
 ### Ablation
 
 <div align="center">
-<img src="05_Figures/paper_final/fig_ablation_analysis.png" width="80%">
+<img src="Figures/paper_final/fig_ablation_analysis.png" width="80%">
 </div>
 
 **Component-level.** BASE variant, 60 epochs, identical hyperparameters,
@@ -153,7 +153,7 @@ FiLM conditioning pathway runs from the classification head into the
 segmentation decoder.
 
 <div align="center">
-<img src="05_Figures/willie_ocean_depth/panel_ablation_waterfall.png" width="72%">
+<img src="Figures/willie_ocean_depth/panel_ablation_waterfall.png" width="72%">
 </div>
 
 **Backbone-level.** Each row adds to the previous.
@@ -166,7 +166,7 @@ segmentation decoder.
 | **XL (+ SAM2-Hiera-L)** | **91.88** | **91.41** | **96.23** | SAM2, seg-specific |
 
 <div align="center">
-<img src="05_Figures/willie_ocean_depth/panel_wtcs_ablation.png" width="66%">
+<img src="Figures/willie_ocean_depth/panel_wtcs_ablation.png" width="66%">
 </div>
 
 > Several component-level effects fall within cross-validation noise. Read the
@@ -174,8 +174,8 @@ segmentation decoder.
 > Full 5-fold ablation scripts are in [`ablations/`](ablations/) covering
 > `full`, `no_F2DCA`, `no_WACSA`, `no_MoE`, `no_WTCS` and `backbone_only`.
 
-All generated tables are in [`06_Tables/`](06_Tables/); all figures in
-[`05_Figures/`](05_Figures/).
+All generated tables are in [`Tables/`](Tables/); all figures in
+[`_Figures/`](Figures/).
 
 ---
 
@@ -239,8 +239,8 @@ All referenced files present. The splits will reproduce.
 | `02_WILLIE_DetectionEngine.ipynb` | Detection baseline pipeline |
 | `03_WILLIE_Cls_Baselines.ipynb` | Classification baselines |
 | `04_WILLIE_Seg_Baselines.ipynb` | Segmentation baselines |
-| `05_WILLIE_SAM2_vs_MedSAM.ipynb` | SAM2 vs MedSAM comparison |
-| `06_WILLIE_MINI.ipynb` | MINI (34.3M) |
+| `WILLIE_SAM2_vs_MedSAM.ipynb` | SAM2 vs MedSAM comparison |
+| `WILLIE_MINI.ipynb` | MINI (34.3M) |
 | `07_WILLIE_BASE.ipynb` | BASE (520.4M) |
 | `08_WILLIE_XL.ipynb` | XL (762.5M) |
 | `09_WILLIE_Scaling_Analysis.ipynb` | Scaling behaviour across tasks |
@@ -252,8 +252,8 @@ All referenced files present. The splits will reproduce.
 |:--|:--|
 | `data/processed/index/` | Authoritative index and split definitions |
 | `04_Manifests_and_Splits/` | Per-task manifests |
-| `05_Figures/` | Generated figures |
-| `06_Tables/` | Generated tables |
+| `Figures/` | Generated figures |
+| `Tables/` | Generated tables |
 | `07_Evaluation_Results/` | Per-run evaluation outputs |
 | `08_SAM2_Generated_Masks/` | SAM2-generated masks |
 | `09_Detection_Predictions/` | Detection predictions |
