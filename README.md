@@ -216,8 +216,6 @@ All referenced files present. The splits will reproduce.
 | `10_WILLIE_Cls_Comparison.ipynb` | Classification comparison |
 | `11_WILLIE_Det_Comparison.ipynb` | Detection / localization comparison |
 | `12_WILLIE_All_Figures_Tables.ipynb` | Figures and tables |
-| `13_WILLIE_Paper_Figures.ipynb` | Paper-ready figures |
-| `14_WILLIE_HospitalPipeline.ipynb` | End-to-end deployment-style pipeline |
 
 | Directory | Contents |
 |:--|:--|
