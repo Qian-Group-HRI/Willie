@@ -1,124 +1,378 @@
+<div align="center">
+
+<img src="assets/hero.png" alt="WILLIE" width="82%">
+
 # WILLIE
 
-**A unified vision-transformer framework and benchmark for wound classification, segmentation, and localization.**
+**A Unified Vision-Transformer Framework and Benchmark for
+Wound Classification, Segmentation, and Localization**
 
-Accepted at the Machine Learning for Healthcare Conference (MLHC) 2026.
+Gopi Trinadh Maddikunta · Peizhu Qian
+Qian Group, University of Houston
 
-> **Note on data:** This repository does **not** redistribute the wound datasets. The images are governed by their original licenses and must be obtained from their original sources (see [Datasets](#datasets)). Only data *manifests and splits* are included, so results can be reproduced against the original images.
+[![MLHC 2026](https://img.shields.io/badge/MLHC-2026-B31B1B.svg)](https://www.mlforhc.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Python 3.10](https://img.shields.io/badge/python-3.10-3776AB.svg?logo=python&logoColor=white)](https://www.python.org/)
+[![PyTorch](https://img.shields.io/badge/PyTorch-EE4C2C.svg?logo=pytorch&logoColor=white)](https://pytorch.org/)
+
+[![Weights](https://img.shields.io/badge/%F0%9F%A4%97%20Weights-QianGroup%2Fwillie--weights-yellow.svg)](https://huggingface.co/QianGroup/willie-weights)
+[![Benchmark](https://img.shields.io/badge/%F0%9F%A4%97%20Benchmark-QianGroup%2Fwillie--benchmark-yellow.svg)](https://huggingface.co/QianGroup/willie-benchmark)
+
+</div>
 
 ---
 
-## Overview
+## At a glance
 
-WILLIE is a single framework that performs three wound-analysis tasks — classification, segmentation, and localization — over a shared 5-class taxonomy, together with a benchmark that compares it against task-specific baselines.
+| | |
+|:--|:--|
+| **Tasks** | Classification · Segmentation · Localization |
+| **Datasets** | FUSeg · AZH · Medetec — unified into one 5-class taxonomy |
+| **Scales** | MINI 34.3M · BASE 520.4M · XL 762.5M |
+| **Headline** | 91.88% Acc · 91.41% Dice · 96.23% AP@0.5 |
+| **Weights** | [🤗 willie-weights](https://huggingface.co/QianGroup/willie-weights) |
+| **Benchmark** | [🤗 willie-benchmark](https://huggingface.co/QianGroup/willie-benchmark) |
 
-Two findings from the paper:
+---
 
-- **Segmentation-derived localization beats dedicated detectors.** Deriving wound location from the segmentation mask outperformed the object-detection baselines on this benchmark.
-- **Scaling is task-dependent.** Larger models did not help uniformly across the three tasks; the benefit of scale varied by task (see the scaling analysis notebook and the paper).
+## Two findings
 
-The framework is released at three sizes:
+**1. Segmentation-derived localization beats dedicated detectors.**
 
-| Scale | Parameters |
-|-------|-----------|
-| MINI  | 34.3M |
-| BASE  | 520.4M |
-| XL    | 762.5M |
+Deriving the wound bounding box from the predicted segmentation mask outperformed
+RT-DETR and YOLO baselines trained directly for detection.
 
-### Reported headline results
+<div align="center">
+<img src="05_Figures/willie_ocean_depth/panel_detr_vs_segdet.png" width="72%">
+</div>
 
-As reported in the paper (test set). See the paper for the exact evaluation protocol (test split, test-time augmentation, and model selection), which differs from the cross-validation ablation protocol.
+**2. Scaling is task-dependent.**
 
-| Task | Metric | Score |
-|------|--------|-------|
-| Classification | Accuracy | 91.88% |
-| Segmentation | Dice | 91.41% |
-| Localization | AP@0.5 | 96.23% |
+Capacity does not help uniformly. Segmentation gains substantially from scale;
+classification saturates. This argues against choosing a single capacity for a
+multi-task wound pipeline.
 
-Component ablations (F²DCA, WACSA, MoE, WTCS) are in [`ablations/`](ablations/) and the paper. Reported component effects fall within cross-validation noise; read the ablation section of the paper for the honest interpretation before citing individual components as contributions.
+<div align="center">
+<img src="05_Figures/cross_model_comparison/fig_scaling_curve.png" width="72%">
+</div>
+
+---
+
+## Architecture
+
+A shared encoder feeds three task heads over a single 5-class taxonomy
+(`diabetic`, `pressure`, `surgical`, `venous`, `no_wound`). Capacity is added by
+stacking backbones rather than widening a single one.
+
+<div align="center">
+<img src="05_Figures/cross_model_comparison/fig_architecture_overview.png" width="88%">
+</div>
+
+| Scale | Params | Backbones | Input |
+|:--|--:|:--|:--|
+| **MINI** | 34.3M | DINOv2-S + FPN | 224×224 |
+| **BASE** | 520.4M | + ConvNeXt-L (dual) | 378×378 |
+| **XL** | 762.5M | + SAM2-Hiera-L (triple) | 378×378 |
+
+Components: F²DCA, WA-CSA, MoE-8, WTCS, WBRN. Definitions and the component
+ablation are in the paper.
+
+---
+
+## Results
+
+Test-set results, 5-fold ensemble with test-time augmentation.
+
+| Task | Metric | WILLIE |
+|:--|:--|--:|
+| Classification | Accuracy | **91.88%** |
+| Segmentation | Dice | **91.41%** |
+| Localization | AP@0.5 | **96.23%** |
+
+<div align="center">
+<img src="05_Figures/paper_final/fig_radar_comparison.png" width="60%">
+</div>
+
+### Against baselines
+
+<table>
+<tr>
+<td width="50%"><img src="05_Figures/paper_final/fig_classification_accuracy.png"></td>
+<td width="50%"><img src="05_Figures/paper_final/fig_segmentation_dice.png"></td>
+</tr>
+<tr>
+<td align="center"><em>Classification vs ResNet-50, VGG-19, EfficientNet-B4, DINOv2+Linear</em></td>
+<td align="center"><em>Segmentation vs U-Net, SAM2.1, MedSAM</em></td>
+</tr>
+</table>
+
+### Accuracy per parameter
+
+<div align="center">
+<img src="05_Figures/paper_final/fig_params_vs_accuracy.png" width="66%">
+</div>
+
+### Cross-validation
+
+Mean ± std over 5 folds. Lower than the headline numbers because the headline
+uses the held-out test split with TTA and fold ensembling.
+
+| Scale | Cls Acc | Seg Dice | Det AP@0.5 | Combined |
+|:--|:--|:--|:--|:--|
+| MINI | 86.4 ± 1.2 | 83.6 ± 1.7 | 85.4 ± 2.7 | 85.0 ± 1.2 |
+| BASE | 88.5 ± 2.0 | 87.5 ± 1.0 | 85.9 ± 4.5 | 87.6 ± 1.8 |
+| XL | — | 91.5 ± 1.1 | — | — |
+
+<div align="center">
+<img src="05_Figures/willie_ocean_depth/fig_per_fold_variance.png" width="66%">
+</div>
+
+### Ablation
+
+<div align="center">
+<img src="05_Figures/paper_final/fig_ablation_analysis.png" width="80%">
+</div>
+
+| Configuration | Cls Acc | Seg Dice | Det AP@0.5 | Added |
+|:--|--:|--:|--:|:--|
+| DINOv2 + Linear | 86.75 | — | — | frozen features |
+| MINI (DINOv2-S) | 86.8 | 84.1 | 85.6 | MoE-8, seg/det heads |
+| BASE (+ ConvNeXt-L) | 91.88 | 86.36 | 89.91 | ConvNeXt, F²DCA |
+| **XL (+ SAM2-Hiera-L)** | **91.88** | **91.41** | **96.23** | SAM2, seg-specific |
+
+> Component-level effects fall within cross-validation noise. Read the paper's
+> ablation section before attributing gains to individual components.
+
+All generated tables are in [`06_Tables/`](06_Tables/); all figures in
+[`05_Figures/`](05_Figures/).
+
+---
+
+## Model zoo
+
+Hosted on the Hugging Face Hub:
+**[QianGroup/willie-weights](https://huggingface.co/QianGroup/willie-weights)**
+
+| Model | Params | Folds | Files |
+|:--|--:|--:|:--|
+| [WILLIE-MINI](https://huggingface.co/QianGroup/willie-weights/tree/main/mini) | 34.3M | 5 | `mini/willie_mini_fold{0-4}_best.pt` |
+| [WILLIE-BASE](https://huggingface.co/QianGroup/willie-weights/tree/main/base) | 520.4M | 5 | `base/willie_base_fold{0-4}_best.pt` |
+| [WILLIE-XL](https://huggingface.co/QianGroup/willie-weights/tree/main/xl) | 762.5M | 5 | `xl/willie_xl_fold{0-4}_best.pt` |
+| [Decoders](https://huggingface.co/QianGroup/willie-weights/tree/main/decoders) | — | — | fine-tuned MedSAM / SAM2 mask decoders |
+
+```python
+import torch
+from huggingface_hub import hf_hub_download
+
+path  = hf_hub_download("QianGroup/willie-weights", "xl/willie_xl_fold0_best.pt")
+ckpt  = torch.load(path, map_location="cpu")
+state = ckpt.get("model_state_dict", ckpt)   # XL ships as a bare state_dict
+model.load_state_dict(state)
+model.eval()
+```
+
+Preprocessing: ImageNet normalization; resize 256→224 (MINI) or 420→378
+(BASE/XL). Reported numbers use the fold ensemble — a single fold scores lower.
+
+---
+
+## Quick start
+
+```bash
+git clone https://github.com/Qian-Group-HRI/Willie.git
+cd Willie
+
+conda create -n wound python=3.10
+conda activate wound
+pip install -r requirements.txt
+```
+
+Obtain the datasets (below), then:
+
+```bash
+python verify_data.py
+```
+
+```
+TOTAL                      3535        0
+All referenced files present. The splits will reproduce.
+```
 
 ---
 
 ## Repository structure
 
-The pipeline is organized as numbered notebooks, intended to be run in order.
-
 | Notebook | Purpose |
-|----------|---------|
+|:--|:--|
 | `01_WILLIE_DataForge.ipynb` | Data preparation, cleaning, split generation |
 | `02_WILLIE_DetectionEngine.ipynb` | Detection baseline pipeline |
 | `03_WILLIE_Cls_Baselines.ipynb` | Classification baselines |
 | `04_WILLIE_Seg_Baselines.ipynb` | Segmentation baselines |
 | `05_WILLIE_SAM2_vs_MedSAM.ipynb` | SAM2 vs MedSAM comparison |
-| `06_WILLIE_MINI.ipynb` | MINI model (34.3M) |
-| `07_WILLIE_BASE.ipynb` | BASE model (520.4M) |
-| `08_WILLIE_XL.ipynb` | XL model (762.5M) |
-| `09_WILLIE_Scaling_Analysis.ipynb` | Scaling behavior across tasks |
+| `06_WILLIE_MINI.ipynb` | MINI (34.3M) |
+| `07_WILLIE_BASE.ipynb` | BASE (520.4M) |
+| `08_WILLIE_XL.ipynb` | XL (762.5M) |
+| `09_WILLIE_Scaling_Analysis.ipynb` | Scaling behaviour across tasks |
 | `10_WILLIE_Cls_Comparison.ipynb` | Classification comparison |
-| `11_WILLIE_Det_Comparison.ipynb` | Detection/localization comparison |
+| `11_WILLIE_Det_Comparison.ipynb` | Detection / localization comparison |
 | `12_WILLIE_All_Figures_Tables.ipynb` | Figures and tables |
 | `13_WILLIE_Paper_Figures.ipynb` | Paper-ready figures |
 | `14_WILLIE_HospitalPipeline.ipynb` | End-to-end deployment-style pipeline |
 
 | Directory | Contents |
-|-----------|----------|
-| `04_Manifests_and_Splits/` | (verify contents) — the authoritative manifests/splits are under `data/processed/`; confirm before relying on this folder |
+|:--|:--|
+| `data/processed/index/` | Authoritative index and split definitions |
+| `04_Manifests_and_Splits/` | Per-task manifests |
 | `05_Figures/` | Generated figures |
 | `06_Tables/` | Generated tables |
+| `07_Evaluation_Results/` | Per-run evaluation outputs |
 | `08_SAM2_Generated_Masks/` | SAM2-generated masks |
-| `09_Detection_Predictions/` | Detection outputs |
-| `ablations/` | Ablation configs and results |
+| `09_Detection_Predictions/` | Detection predictions |
+| `ablations/` | Component ablation scripts |
 
-> Before publishing: clear notebook outputs (`jupyter nbconvert --clear-output --inplace *.ipynb`). Output cells can embed licensed images and absolute local paths.
+Manifest paths are relative to the repository root.
 
 ---
 
 ## Datasets
 
-The benchmark uses three public wound datasets, mapped to a 5-class taxonomy: `diabetic`, `pressure`, `surgical`, `venous`, `no_wound`. The images are governed by their original licenses and are **not** included in this repository — obtain each from its original source.
+Three public wound datasets. **Images are governed by their original licences
+and are not redistributed here.**
 
-- **FUSeg** (Foot Ulcer Segmentation Challenge 2021) — `https://fusc.grand-challenge.org` and the UWM `wound-segmentation` repository.
-- **AZH** (AZH Wound and Vascular Center dataset) — UWM Big Data Lab / `uwm-bigdata` GitHub repositories.
-- **Medetec** (Medetec Wound Database) — `medetec.co.uk`.
+| Dataset | Source | Notes |
+|:--|:--|:--|
+| **FUSeg** | [fusc.grand-challenge.org](https://fusc.grand-challenge.org) | Requires the challenge data-use agreement |
+| **AZH** | [uwm-bigdata](https://github.com/uwm-bigdata) | AZH Wound and Vascular Center |
+| **Medetec** | [medetec.co.uk](http://www.medetec.co.uk) | Own terms of use |
 
-After downloading, place the images where the manifests in `manifests/` expect them (see `01_WILLIE_DataForge.ipynb`). The manifests reference images by relative path, so results reproduce without re-hosting the images.
+Split definitions are on the Hub:
+**[QianGroup/willie-benchmark](https://huggingface.co/QianGroup/willie-benchmark)**
+
+<details>
+<summary><b>Expected directory layout</b> — 3,535 files</summary>
+
+```
+data/
+├── FUSeg/
+│   ├── train/images/   610      train/labels/   610
+│   ├── val/images/     400      val/labels/     400
+│   └── test/images/    200      (no public labels)
+├── AZH/
+│   ├── train/   BG 75 · diabetic 139 · "no wound" 75 ·
+│   │            pressure 100 · surgical 122 · venous 185
+│   └── test/    BG 25 · diabetic 46 · "no wound" 25 ·
+│                pressure 34 · surgical 42 · venous 62
+└── Medetec/
+    ├── diabetic/   48        pressure/  170
+    └── toes/       34        venous/    133
+```
+
+The AZH class folder `no wound` contains a space. Keep it.
+`verify_data.py` reports per-directory counts and names any missing file.
+
+</details>
 
 ---
 
-## Environment
-
-Dependencies come from the `wound` conda environment. Do not install guessed versions — generate a lock file from that environment (see `environment.txt` for the full procedure):
-
-```bash
-conda activate wound
-pip freeze > requirements.txt
-# record the exact torch + CUDA build:
-python -c "import torch; print(torch.__version__, torch.version.cuda)"
-```
-
-Install from the generated file:
-
-```bash
-conda create -n wound python=<version-from-env>
-conda activate wound
-pip install -r requirements.txt
-```
-
-**TODO (before release):** commit the generated `requirements.txt`, and state the GPU(s) and memory used for XL training/eval so others can gauge hardware requirements.
-
----
-
-## Reproducing results
+## Reproducing the paper
 
 1. Set up the `wound` environment.
-2. Obtain the three datasets and place them per the manifests.
-3. Run `01_WILLIE_DataForge.ipynb` to build/verify splits.
-4. Run the model notebooks (`06`–`08`) for MINI/BASE/XL.
-5. Run comparison and figure notebooks (`09`–`13`) to regenerate the paper's tables and figures.
+2. Obtain the datasets and place them per the layout above.
+3. Run `01_WILLIE_DataForge.ipynb` to build and verify the splits.
+4. Run `06`–`08` for MINI / BASE / XL.
+5. Run `09`–`13` to regenerate the tables and figures.
 
-The notebook that produces each headline number should reproduce that number under the paper's stated protocol. If a number does not reproduce from its notebook, treat that as a bug to fix before release, not a footnote.
+BASE and XL need multi-GPU hardware. MINI is the single-GPU entry point. For
+inference only, download the released weights instead of training.
+
 ---
 
-## Acknowledgements
+## Provenance
 
-Developed in the Qian Group, University of Houston. Advisor: Dr. Peizhu Qian.
+Outputs stored in these notebooks were produced on the University of Houston
+*carya* cluster during the study. Three cosmetic edits were made for release:
+
+- absolute cluster paths rewritten to repository-relative form
+- embedded figure payloads removed from notebook outputs
+- the model name updated from its development name
+
+**No numeric result was altered.** The notebooks have not been re-executed after
+this cleanup, so stored metrics are a record of the original runs rather than the
+output of a fresh execution. Execution counts in some notebooks are
+non-sequential, reflecting interactive development.
+
+---
+
+## Known limitations
+
+<details>
+<summary><b>Duplicate images across splits</b></summary>
+
+Verified by byte-level comparison of the source datasets:
+
+- **One image identical between AZH train and test**
+  (`train/surgical/10_0.jpg` / `test/surgical/99_0.jpg`). On the 234-image AZH
+  test set, the maximum effect on the reported 91.88% accuracy is **0.43
+  percentage points** (worst case 91.45%).
+- **Nine image pairs identical between FUSeg train and validation.** Validation
+  is used for model selection only and does not enter the reported test Dice.
+- Duplicate copies within splits: FUSeg train 10, validation 6, test 7.
+- FUSeg train↔test and validation↔test contain no duplicates.
+
+</details>
+
+<details>
+<summary><b>Ablation protocol</b></summary>
+
+Reported component effects fall within cross-validation noise. The XL ablation
+implementation differs substantially from the MINI and BASE scripts, which share
+most of their implementation — treat cross-scale ablation comparisons with that
+in mind.
+
+</details>
+
+<details>
+<summary><b>Scope</b></summary>
+
+All images are foot, pressure, venous and surgical wound photographs from a
+small number of clinical sources. Imaging conditions, camera hardware and
+skin-tone distribution are neither controlled nor documented, and per-skin-tone
+performance has not been measured. Generalisation beyond this population is
+untested.
+
+**This is research code, not a medical device.** It has not been validated for
+diagnosis or patient care and carries no regulatory clearance.
+
+</details>
+
+---
+
+## Citation
+
+```bibtex
+@inproceedings{willie2026,
+  title     = {WILLIE: A Unified Vision-Transformer Framework and Benchmark
+               for Wound Classification, Segmentation, and Localization},
+  author    = {Maddikunta, Gopi Trinadh and Qian, Peizhu},
+  booktitle = {Proceedings of the Machine Learning for Healthcare Conference (MLHC)},
+  year      = {2026}
+}
+```
+
+Please also cite FUSeg, AZH and Medetec per their own requirements.
+
+---
+
+## Licence
+
+Code released under the [MIT Licence](LICENSE). The wound datasets are **not**
+covered by this licence and remain subject to their original terms.
+
+---
+
+<div align="center">
+
+**Qian Group**, University of Houston · Advisor: Dr. Peizhu Qian
+Computation performed on the UH *carya* cluster.
+
+</div>
