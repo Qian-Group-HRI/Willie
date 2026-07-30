@@ -1,0 +1,33 @@
+% Auto-generated 2026-02-20T17:04:55.059762
+\begin{table}[t]
+\centering
+\caption{5-Class Wound Classification. C=Cls, S=Seg, D=Det.
+$\dagger$\,Ablation. $\ddagger$\,With TTA.
+Best baseline \underline{underlined}, best overall \textbf{bold}.}
+\label{tab:classification_comparison}
+\small
+\begin{tabular}{lcccccc}
+\toprule
+\textbf{Method} & \textbf{Tasks} & \textbf{Params} & \textbf{Acc (\%)} & \textbf{F1 (\%)} & \textbf{AUC (\%)} \\
+\midrule
+VGG-19 & C & 124.9M & 76.50 & 76.67 & 95.45 \\
+EfficientNet-B4 & C & 18.5M & 83.76 & 83.36 & 97.54 \\
+DINOv2+Linear$^\dagger$ & C & 22.2M & \underline{88.03} & 88.25 & 98.35 \\
+ResNet-50 & C & 24.6M & \underline{88.03} & 87.82 & 97.27 \\
+\midrule
+WoundShot-MINI & C+S+D & 31.8M & 81.62 & 81.00 & 96.80 \\
+WoundShot-BASE$^\ddagger$ & C+S+D & 120.0M & 90.60 & 90.48 & \textbf{98.80} \\
+WoundShot-XL & C+S+D & 622.0M & 85.90 & 85.51 & 97.80 \\
+WoundShot-Ens.$^\ddagger$ & C+S+D & 742.0M & \textbf{91.03} & \textbf{90.90} & \textbf{98.80} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[t]
+\centering\caption{FUSeg Segmentation.}\label{tab:seg}\small
+\begin{tabular}{lccc}\toprule
+\textbf{Method} & \textbf{Tasks} & \textbf{Dice Mean (\%)} & \textbf{Dice Median (\%)} \\\midrule
+U-Net (EffNet-B3) & S & 73.25 & 82.20 \\
+FUSegNet (reported) & S & 89.23 & -- \\\midrule
+WoundShot-XL & C+S+D & 78.56 & \textbf{88.06} \\
+\bottomrule\end{tabular}\end{table}
